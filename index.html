@@ -1,1 +1,441 @@
 
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#087f8c">
+  <title>یادآور دارو</title>
+  <style>
+    :root {
+      --primary: #087f8c;
+      --bg: #f2f8f8;
+      --danger: #c62828;
+      --text: #183536;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: Tahoma, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.8;
+    }
+
+    header {
+      background: linear-gradient(135deg, #087f8c, #13a89e);
+      color: white;
+      padding: 25px 16px;
+      text-align: center;
+    }
+
+    header h1 { margin: 0; font-size: 27px; }
+    header p { margin: 5px 0 0; }
+
+    main {
+      width: min(680px, 100%);
+      margin: 20px auto;
+      padding: 0 14px 35px;
+    }
+
+    .panel {
+      background: white;
+      border-radius: 16px;
+      padding: 18px;
+      margin-bottom: 17px;
+      box-shadow: 0 3px 15px #1835360d;
+    }
+
+    h2 { font-size: 19px; margin: 0 0 14px; }
+
+    label {
+      display: block;
+      font-weight: bold;
+      margin: 10px 0 5px;
+      font-size: 14px;
+    }
+
+    input, select, textarea {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #cbdada;
+      border-radius: 10px;
+      background: white;
+      font: inherit;
+      font-size: 16px;
+      color: var(--text);
+    }
+
+    textarea { resize: vertical; min-height: 70px; }
+
+    button {
+      font: inherit;
+      border: 0;
+      border-radius: 10px;
+      padding: 10px 14px;
+      cursor: pointer;
+    }
+
+    .primary {
+      width: 100%;
+      margin-top: 16px;
+      color: white;
+      background: var(--primary);
+      font-weight: bold;
+      padding: 13px;
+    }
+
+    .secondary { background: #e3f3f3; color: #075e66; }
+    .danger { background: #ffebee; color: var(--danger); }
+    .success { background: #e5f6e9; color: #216e39; }
+
+    .summary {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .summary div {
+      background: #e9f7f6;
+      border-radius: 12px;
+      padding: 12px;
+      text-align: center;
+    }
+
+    .summary strong { display: block; font-size: 23px; color: var(--primary); }
+
+    .medicine {
+      border: 1px solid #e1ebeb;
+      border-radius: 13px;
+      padding: 14px;
+      margin-top: 12px;
+      overflow-wrap: anywhere;
+    }
+
+    .medicine h3 { margin: 0 0 5px; font-size: 18px; }
+    .medicine p { margin: 4px 0; font-size: 14px; }
+    .actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+    .empty { text-align: center; color: #647878; padding: 18px 0; }
+    .hint { color: #5e7373; font-size: 13px; }
+    .notice { font-size: 13px; color: #6b5550; }
+
+    footer { text-align: center; padding: 15px; color: #6b8080; font-size: 12px; }
+
+    @media (max-width: 380px) {
+      header h1 { font-size: 23px; }
+      .panel { padding: 14px; }
+      .actions button { flex: 1; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>💊 یادآور دارو</h1>
+    <p>داروهایت را به‌موقع مصرف کن</p>
+  </header>
+
+  <main>
+    <section class="panel">
+      <div class="summary">
+        <div>
+          <strong id="totalCount">۰</strong>
+          داروی ثبت‌شده
+        </div>
+        <div>
+          <strong id="nextTime">--:--</strong>
+          نزدیک‌ترین زمان
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2 id="formTitle">➕ ثبت داروی جدید</h2>
+      <form id="medicineForm">
+        <label for="medicineName">نام دارو *</label>
+        <input id="medicineName" type="text" maxlength="100"
+          placeholder="مثلاً ویتامین D" required>
+
+        <label for="medicineDose">مقدار یا دوز مصرف</label>
+        <input id="medicineDose" type="text" maxlength="100"
+          placeholder="مثلاً یک قرص">
+
+        <label for="medicineTime">ساعت مصرف *</label>
+        <input id="medicineTime" type="time" required>
+
+        <label for="medicineFrequency">تکرار مصرف</label>
+        <select id="medicineFrequency">
+          <option value="daily">هر روز</option>
+          <option value="once">فقط یک‌بار</option>
+        </select>
+
+        <label for="medicineNotes">یادداشت (اختیاری)</label>
+        <textarea id="medicineNotes" maxlength="500"
+          placeholder="مثلاً بعد از غذا"></textarea>
+
+        <button class="primary" type="submit" id="saveButton">
+          ذخیره دارو
+        </button>
+        <button class="secondary" type="button" id="cancelEdit"
+          style="display:none;width:100%;margin-top:8px">
+          انصراف از ویرایش
+        </button>
+      </form>
+    </section>
+
+    <section class="panel">
+      <h2>🔔 یادآوری‌ها</h2>
+      <p class="hint">
+        برای دریافت اعلان، دکمهٔ فعال‌سازی اعلان را بزن.
+      </p>
+      <button class="secondary" id="enableNotifications" style="width:100%">
+        فعال‌سازی اعلان‌ها
+      </button>
+      <p id="notificationStatus" class="hint" role="status">
+        وضعیت اعلان‌ها هنوز بررسی نشده است.
+      </p>
+      <p class="notice">
+        توجه: اعلان‌های این نسخه وقتی صفحه باز و فعال باشد بررسی می‌شوند.
+        برای یادآوری قابل‌اعتماد در پس‌زمینه، نسخهٔ پیشرفته‌تری لازم است.
+      </p>
+    </section>
+
+    <section class="panel">
+      <h2>📋 فهرست داروها</h2>
+      <div id="medicineList" aria-live="polite"></div>
+      <button class="danger" id="clearAll" style="width:100%;margin-top:14px">
+        حذف همهٔ داروها
+      </button>
+    </section>
+  </main>
+
+  <footer>یادآور دارو | اطلاعات روی همین مرورگر ذخیره می‌شود.</footer>
+
+  <script>
+    (() => {
+      "use strict";
+
+      const STORAGE_KEY = "yadavar_daru_medicines_v1";
+      const $ = (id) => document.getElementById(id);
+
+      let medicines = loadMedicines();
+      let editingId = null;
+      const notified = new Set();
+
+      function loadMedicines() {
+        try {
+          const data = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+          return Array.isArray(data) ? data : [];
+        } catch {
+          return [];
+        }
+      }
+
+      function saveMedicines() {
+        try {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(medicines));
+          return true;
+        } catch {
+          alert("ذخیره‌سازی ممکن نیست. فضای مرورگر را بررسی کن.");
+          return false;
+        }
+      }
+
+      function escapeHTML(value) {
+        return String(value ?? "").replace(/[&<>"']/g, (char) => ({
+          "&": "&amp;",
+          "<": "&lt;",
+          ">": "&gt;",
+          '"': "&quot;",
+          "'": "&#39;"
+        })[char]);
+      }
+
+      function toPersianNumber(value) {
+        return String(value).replace(/\d/g, d => "۰۱۲۳۴۵۶۷۸۹"[Number(d)]);
+      }
+
+      function render() {
+        $("totalCount").textContent = toPersianNumber(medicines.length);
+
+        const now = new Date();
+        const nowMinutes = now.getHours() * 60 + now.getMinutes();
+        const upcoming = medicines
+          .map(m => ({ ...m, minutes: Number(m.time?.slice(0, 2)) * 60 +
+            Number(m.time?.slice(3, 5)) }))
+          .filter(m => m.frequency === "daily" || m.minutes >= nowMinutes)
+          .sort((a, b) => a.minutes - b.minutes);
+
+        $("nextTime").textContent = upcoming.length
+          ? toPersianNumber(upcoming[0].time)
+          : (medicines.length ? "فردا" : "--:--");
+
+        const list = $("medicineList");
+
+        if (!medicines.length) {
+          list.innerHTML = '<p class="empty">هنوز دارویی ثبت نشده است.</p>';
+          return;
+        }
+
+        list.innerHTML = medicines.map(m => `
+          <article class="medicine">
+            <h3>${escapeHTML(m.name)}</h3>
+            <p>⏰ ساعت مصرف: <strong>${escapeHTML(toPersianNumber(m.time))}</strong></p>
+            ${m.dose ? `<p>💊 مقدار: ${escapeHTML(m.dose)}</p>` : ""}
+            <p>🔁 تکرار: ${m.frequency === "daily" ? "هر روز" : "فقط یک‌بار"}</p>
+            ${m.notes ? `<p>📝 یادداشت: ${escapeHTML(m.notes)}</p>` : ""}
+            <div class="actions">
+              <button class="secondary" data-action="edit" data-id="${escapeHTML(m.id)}">ویرایش</button>
+              <button class="danger" data-action="delete" data-id="${escapeHTML(m.id)}">حذف</button>
+              <button class="success" data-action="taken" data-id="${escapeHTML(m.id)}">مصرف شد ✓</button>
+            </div>
+          </article>
+        `).join("");
+      }
+
+      function resetForm() {
+        editingId = null;
+        $("medicineForm").reset();
+        $("formTitle").textContent = "➕ ثبت داروی جدید";
+        $("saveButton").textContent = "ذخیره دارو";
+        $("cancelEdit").style.display = "none";
+      }
+
+      $("medicineForm").addEventListener("submit", (event) => {
+        event.preventDefault();
+
+        const name = $("medicineName").value.trim();
+        const dose = $("medicineDose").value.trim();
+        const time = $("medicineTime").value;
+        const frequency = $("medicineFrequency").value;
+        const notes = $("medicineNotes").value.trim();
+
+        if (!name || !time) {
+          alert("لطفاً نام دارو و ساعت مصرف را وارد کن.");
+          return;
+        }
+
+        const oldMedicines = [...medicines];
+
+        if (editingId) {
+          medicines = medicines.map(m => m.id === editingId
+            ? { ...m, name, dose, time, frequency, notes }
+            : m);
+        } else {
+          medicines.push({
+            id: (crypto.randomUUID ? crypto.randomUUID() :
+              String(Date.now()) + Math.random().toString(16).slice(2)),
+            name, dose, time, frequency, notes,
+            createdAt: Date.now()
+          });
+        }
+
+        if (!saveMedicines()) {
+          medicines = oldMedicines;
+          return;
+        }
+
+        resetForm();
+        render();
+      });
+
+      $("cancelEdit").addEventListener("click", resetForm);
+
+      $("medicineList").addEventListener("click", (event) => {
+        const button = event.target.closest("button[data-action]");
+        if (!button) return;
+
+        const medicine = medicines.find(m => m.id === button.dataset.id);
+        if (!medicine) return;
+
+        if (button.dataset.action === "edit") {
+          editingId = medicine.id;
+          $("medicineName").value = medicine.name;
+          $("medicineDose").value = medicine.dose || "";
+          $("medicineTime").value = medicine.time;
+          $("medicineFrequency").value = medicine.frequency;
+          $("medicineNotes").value = medicine.notes || "";
+          $("formTitle").textContent = "✏️ ویرایش دارو";
+          $("saveButton").textContent = "ذخیره تغییرات";
+          $("cancelEdit").style.display = "block";
+          $("medicineName").focus();
+          window.scrollTo({ top: 0, behavior: "smooth" });
+        }
+
+        if (button.dataset.action === "delete") {
+          if (!confirm(`داروی «${medicine.name}» حذف شود؟`)) return;
+          medicines = medicines.filter(m => m.id !== medicine.id);
+          saveMedicines();
+          render();
+        }
+
+        if (button.dataset.action === "taken") {
+          alert(`مصرف «${medicine.name}» ثبت شد.\nاین ثبت فقط برای اطلاع شماست.`);
+        }
+      });
+
+      $("clearAll").addEventListener("click", () => {
+        if (!medicines.length) {
+          alert("فهرست داروها خالی است.");
+          return;
+        }
+        if (!confirm("همهٔ داروها حذف شوند؟ این کار قابل بازگشت نیست.")) return;
+        medicines = [];
+        saveMedicines();
+        resetForm();
+        render();
+      });
+
+      $("enableNotifications").addEventListener("click", async () => {
+        if (!("Notification" in window)) {
+          $("notificationStatus").textContent =
+            "این مرورگر از اعلان‌های وب پشتیبانی نمی‌کند.";
+          return;
+        }
+
+        try {
+          const permission = await Notification.requestPermission();
+          $("notificationStatus").textContent =
+            permission === "granted" ? "اعلان‌ها فعال شدند."
+            : "اجازهٔ اعلان داده نشد. تنظیمات مرورگر را بررسی کن.";
+        } catch {
+          $("notificationStatus").textContent =
+            "فعال‌سازی اعلان ممکن نشد. صفحه را در مرورگر باز کن.";
+        }
+      });
+
+      function checkReminders() {
+        if (!("Notification" in window) || Notification.permission !== "granted") return;
+
+        const now = new Date();
+        const hhmm = String(now.getHours()).padStart(2, "0") + ":" +
+          String(now.getMinutes()).padStart(2, "0");
+        const today = now.getFullYear() + "-" +
+          String(now.getMonth() + 1).padStart(2, "0") + "-" +
+          String(now.getDate()).padStart(2, "0");
+
+        medicines.forEach(m => {
+          const key = `${today}_${m.id}_${hhmm}`;
+          if (m.time !== hhmm || notified.has(key)) return;
+          notified.add(key);
+
+          try {
+            new Notification("یادآور دارو", {
+              body: `زمان مصرف ${m.name}${m.dose ? "، " + m.dose : ""} است.`
+            });
+          } catch {}
+        });
+      }
+
+      if ("Notification" in window && Notification.permission === "granted") {
+        $("notificationStatus").textContent = "اجازهٔ اعلان فعال است.";
+      }
+
+      render();
+      checkReminders();
+      setInterval(checkReminders, 15000);
+    })();
+  </script>
+</body>
+</html>
